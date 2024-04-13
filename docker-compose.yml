@@ -1,0 +1,103 @@
+version: '0.1'
+
+services:
+  #slimapi1:
+  #  image: willrodrigues/rinha-slimapi:latest
+  #   hostname: slimapi1
+  #   environment:
+  #     - DATABASE_URL=postgresql://postgres:postgres@db-postgresql/postgres
+  #     - DATABASE_MAX_CONNECTIONS=200
+
+  #     - CACHE_HOST=cache-redis
+      
+  #     - GUNICORN_BIND=0.0.0.0:8000
+  #     - GUNICORN_WORKERS=2
+  #     - GUNICORN_KEEPALIVE=4
+  #     - GUNICORN_FORWARDED_ALLOW_IPS=*
+  #   depends_on:
+  #     db-postgresql:
+  #       condition: service_healthy
+  #     cache-redis:
+  #       condition: service_healthy
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '0.3'
+  #         memory: '0.6GB'
+  #   networks:
+  #     - rinha-network
+
+  # slimapi2:
+  #   image: willrodrigues/rinha-slimapi:latest
+  #   hostname: slimapi2
+  #   environment:
+  #     - DATABASE_URL=postgresql://postgres:postgres@db-postgresql/postgres
+  #     - DATABASE_MAX_CONNECTIONS=200
+
+  #     - CACHE_HOST=cache-redis
+      
+  #     - GUNICORN_BIND=0.0.0.0:8000
+  #     - GUNICORN_WORKERS=2
+  #     - GUNICORN_KEEPALIVE=4
+  #     - GUNICORN_FORWARDED_ALLOW_IPS=*
+  #   depends_on:
+  #     db-postgresql:
+  #       condition: service_healthy
+  #     cache-redis:
+  #       condition: service_healthy
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '0.3'
+  #         memory: '0.6GB'
+  #   networks:
+  #     - rinha-network
+
+  db-postgresql:
+    image: vector_pt_br
+    # command: postgres -c 
+    container_name: ${ENV_NAME}_postgres
+    user: ${POSTGRES_USER}  
+    healthcheck:
+      test: [ "sleep", "CMD-SHELL", "pg_isready" ]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+    logging:
+          options:
+            max-size: 10m
+            max-file: "3"
+    ports:
+          - '5438:5432'
+    volumes:
+      - ps_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: '1.3GB'
+    networks:
+      - vector-network
+  
+  teste-pgadmin-compose:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "walmeidasanto@gmail.com"
+      PGADMIN_DEFAULT_PASSWORD: "teste123"
+    ports:
+      - '16543:80'
+    depends_on:
+      - db-postgresql
+    networks:
+      - vector-network
+
+volumes:
+  ps_data:
+    name: ${ENV_NAME}_postgres
+
+networks:
+  vector-network:
