@@ -1,65 +1,64 @@
 version: '0.1'
 
 services:
-  #slimapi1:
-  #  image: willrodrigues/rinha-slimapi:latest
-  #   hostname: slimapi1
-  #   environment:
-  #     - DATABASE_URL=postgresql://postgres:postgres@db-postgresql/postgres
-  #     - DATABASE_MAX_CONNECTIONS=200
+  vector1:
+   image: walmeidasantos/herecomesanewchallenger:latest
+    hostname: vector1
+    environment:
+      - DATABASE_MAX_CONNECTIONS=400
 
-  #     - CACHE_HOST=cache-redis
+      - CACHE_HOST=cache-redis
       
-  #     - GUNICORN_BIND=0.0.0.0:8000
-  #     - GUNICORN_WORKERS=2
-  #     - GUNICORN_KEEPALIVE=4
-  #     - GUNICORN_FORWARDED_ALLOW_IPS=*
-  #   depends_on:
-  #     db-postgresql:
-  #       condition: service_healthy
-  #     cache-redis:
-  #       condition: service_healthy
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: '0.3'
-  #         memory: '0.6GB'
-  #   networks:
-  #     - rinha-network
+      - GUNICORN_BIND=0.0.0.0:8000
+      - GUNICORN_WORKERS=2
+      - GUNICORN_KEEPALIVE=4
+      - GUNICORN_FORWARDED_ALLOW_IPS=*
+    depends_on:
+      db-postgresql:
+        condition: service_healthy
+      cache-redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: '0.6GB'
+    networks:
+      - vector-network
 
-  # slimapi2:
-  #   image: willrodrigues/rinha-slimapi:latest
-  #   hostname: slimapi2
-  #   environment:
-  #     - DATABASE_URL=postgresql://postgres:postgres@db-postgresql/postgres
-  #     - DATABASE_MAX_CONNECTIONS=200
+  slimapi2:
+    image: walmeidasantos/herecomesanewchallenger:latest
+    hostname: vector2
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db-postgresql/postgres
+      - DATABASE_MAX_CONNECTIONS=200
 
-  #     - CACHE_HOST=cache-redis
+      - CACHE_HOST=cache-redis
       
-  #     - GUNICORN_BIND=0.0.0.0:8000
-  #     - GUNICORN_WORKERS=2
-  #     - GUNICORN_KEEPALIVE=4
-  #     - GUNICORN_FORWARDED_ALLOW_IPS=*
-  #   depends_on:
-  #     db-postgresql:
-  #       condition: service_healthy
-  #     cache-redis:
-  #       condition: service_healthy
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: '0.3'
-  #         memory: '0.6GB'
-  #   networks:
-  #     - rinha-network
+      - GUNICORN_BIND=0.0.0.0:8000
+      - GUNICORN_WORKERS=2
+      - GUNICORN_KEEPALIVE=4
+      - GUNICORN_FORWARDED_ALLOW_IPS=*
+    depends_on:
+      db-postgresql:
+        condition: service_healthy
+      cache-redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: '0.6GB'
+    networks:
+      - vector-network
 
   db-postgresql:
     image: vector_pt_br
-    # command: postgres -c 
+    command: postgres -c 'max_connections=400'
     container_name: ${ENV_NAME}_postgres
     user: ${POSTGRES_USER}  
     healthcheck:
-      test: [ "sleep", "CMD-SHELL", "pg_isready" ]
+      test: [ CMD-SHELL", "pg_isready" ]
       interval: 3s
       timeout: 5s
       retries: 10

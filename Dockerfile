@@ -1,11 +1,16 @@
-FROM pgvector/pgvector:pg16
+#docker tag herecomesanewchallenger herecomesanewchallenger
+#docker push herecomesanewchallenger
 
-LABEL version="0.0.1"
+FROM python:3.11-slim
 
-LABEL name="vector_pr_BR"
+WORKDIR /app
 
-LABEL description="PostgreSQL Vector pt_BR.UTF8"
+COPY requirements.txt .
 
-RUN localedef -i pt_BR -c -f UTF-8 -A /usr/share/locale/locale.alias pt_BR.utf-8
+RUN pip install --no-cache-dir -r requirements.txt
 
-ENV LANG pt_BR.utf8
+COPY . .
+
+EXPOSE 8000
+
+CMD [ "gunicorn", "main:app" ]
