@@ -56,7 +56,7 @@ class PessoaLoadTesting(HttpUser):
         pessoa_location = post_res.headers.get('location')
         self.client.get(pessoa_location, name='/get-pessoa-by-id-success')
 
-    @task(3)
-    def get_pessoas_by_search_term_success(self):
-        search_term = random.choice(programming_languages)
-        self.client.get(f'/pessoas?t={search_term}', name='/get-pessoas-by-search-term-success')
+    # @task(3)
+    # def get_pessoas_by_search_term_success(self):
+    #     search_term = random.choice(programming_languages)
+    #     self.client.get(f'/pessoas?t={search_term}', name='/get-pessoas-by-search-term-success')

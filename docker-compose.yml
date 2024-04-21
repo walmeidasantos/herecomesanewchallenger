@@ -24,6 +24,7 @@ services:
     ports:
           - '5438:5432'
     volumes:
+      - /var/lib/postgresql:/var/lib/postgresql   
       - ps_data:/var/lib/postgresql/data
     deploy:
       resources:
