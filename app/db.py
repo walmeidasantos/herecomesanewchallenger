@@ -1,7 +1,6 @@
-from sqlalchemy import URL
+import os
 from sqlmodel import create_engine, SQLModel, Session
 from dotenv import dotenv_values
-
 
 class DatabaseConnection():
     _instanace = None
@@ -9,15 +8,8 @@ class DatabaseConnection():
     def __new__(cls):
         if not cls._instanace:
             cls._instanace = super().__new__(cls)
-            config = dotenv_values(".env")
-            url = URL.create(
-                    drivername="postgresql",
-                    username=config['POSTGRES_USER'],
-                    password=config['POSTGRES_PASSWORD'],
-                    host=config['POSTGRES_HOST'],
-                    port=5438,
-                    database=config['POSTGRES_DB']
-                    )
+            url = os.getenv("DATABASE_URL")
+
             cls._instanace = create_engine(url)
 
         return cls._instanace
