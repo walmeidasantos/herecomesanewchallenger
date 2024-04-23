@@ -41,11 +41,15 @@ def deserialize(data):
 
 @app.post('/pessoas', status_code=201)
 def create(res: Response, pessoa: Pessoa, session: Session = Depends(get_session)):
-    new_pessoa = Pessoa(**pessoa.model_dump())
-    session.add(new_pessoa)
-    session.commit()
-    res.headers.update({'Location': f'/pessoas/{new_pessoa.id}'})
-
+    try: 
+        new_pessoa = Pessoa(**pessoa.model_dump())
+        session.add(new_pessoa)
+        session.commit()
+        res.headers.update({'Location': f'/pessoas/{new_pessoa.id}'})
+    except ValueError:
+        raise HTTPException(status_code=422)
+    except Exception:
+        raise HTTPException(status_code=422)
 
 @app.get('/pessoas/{id}')
 async def find_by_id(id: str, session: Session = Depends(get_session)):
