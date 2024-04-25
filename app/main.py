@@ -6,7 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 import json
 from fastapi.encoders import jsonable_encoder
-from sqlmodel import Session
+from sqlmodel import Session, or_, cast, String
 from db import init_db, get_session
 from models import Pessoa
 
@@ -48,27 +48,25 @@ def create(res: Response, pessoa: Pessoa, session: Session = Depends(get_session
         res.headers.update({'Location': f'/pessoas/{new_pessoa.id}'})
     except ValueError:
         raise HTTPException(status_code=422)
-    except Exception:
-        raise HTTPException(status_code=422)
+    return serialize(new_pessoa)
 
 @app.get('/pessoas/{id}')
 async def find_by_id(id: str, session: Session = Depends(get_session)):
-    pessoa = session.query(Pessoa).get(id)
-    if pessoa:
+    
+    try:
+        pessoa = session.query(Pessoa).get(id)
         pessoa_data = pessoa.__dict__
         return pessoa_data
-    else:
+    except:
         raise HTTPException(status_code=404)
 
-
-@app.get('/pessoas/{nickname}')
-def find_by_nickname(nickname: str, session: Session = Depends(get_session)):
-    pessoa = session.query(Pessoa).get(nickname)
-    if pessoa:
-        pessoa_data = pessoa.__dict__
-        return pessoa_data
-    else:
-        raise HTTPException(status_code=404)
+@app.get('/pessoas')
+def find_by_term(t: str = Query(..., min_length=1), session: Session = Depends(get_session)):
+    return session.query(Pessoa).filter(
+        or_(Pessoa.apelido.ilike(f'%{t}%'),
+            Pessoa.nome.ilike(f'%{t}%'),
+            cast(Pessoa.stack, String).ilike(f'%{t}%'))
+    ).limit(50).all()
 
 
 @app.get("/contagem-pessoas")
