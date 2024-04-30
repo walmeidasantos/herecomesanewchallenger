@@ -6,7 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 import json
 from fastapi.encoders import jsonable_encoder
-from sqlmodel import Session, or_, cast, String
+from sqlmodel import Session, or_, cast, String,text
 from db import init_db, get_session
 from models import Pessoa,PessoaJson
 
@@ -63,6 +63,8 @@ async def find_by_id(uuid: str, session: Session = Depends(get_session)):
 
 @app.get('/pessoas')
 def find_by_term(t: str = Query(..., min_length=1), session: Session = Depends(get_session)):
+    # session.execute(
+    #     text('SELECT uuid,name,nickname,stack,nascimento FROM pessoa WHERE search_text = :val'), {'val': t})
     return session.query(Pessoa).filter( (Pessoa.search_text.ilike(f'%{t}%'))
     ).limit(50).all()
 
@@ -71,5 +73,5 @@ def find_by_term(t: str = Query(..., min_length=1), session: Session = Depends(g
 def count_pessoas(session: Session = Depends(get_session)):
     return session.query(Pessoa).count()
 
-# if __name__ == "__main__":
-#     uvicorn.run(app, host="0.0.0.0", port=8003)
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8003)

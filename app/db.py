@@ -33,7 +33,8 @@ def init_db():
         END;
         $$ LANGUAGE plpgsql IMMUTABLE;
 """   ))
-    session.execute( text( "ALTER TABLE pessoa ADD COLUMN search_text  TEXT GENERATED ALWAYS AS (generate_searchable(name,nickname,stack)) STORED"   ))
+    session.execute( text( "CREATE INDEX IF NOT EXISTS idx_pessoas_searchable ON pessoa USING gin(search_text gin_trgm_ops)" ) )
+    session.execute( text( "ALTER TABLE pessoa ALTER COLUMN search_text  TEXT GENERATED ALWAYS AS (generate_searchable(name,nickname,stack)) STORED"   ))
     session.commit()
 
 def get_session():
