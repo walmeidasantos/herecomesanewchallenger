@@ -6,8 +6,16 @@ from faker.providers import BaseProvider
 from locust import HttpUser, task, constant
 
 programming_languages = [
-    'Python', 'Go', 'Node', 'Java', 'C#',
-    'C++', 'Ruby', 'Rust', 'Crystal', 'PHP',
+    "Python",
+    "Go",
+    "Node",
+    "Java",
+    "C#",
+    "C++",
+    "Ruby",
+    "Rust",
+    "Crystal",
+    "PHP",
 ]
 
 
@@ -18,13 +26,13 @@ class ProgrammingLanguagesProvider(BaseProvider):
         return random.choices(population=programming_languages, k=5)
 
 
-fake = Faker('pt_BR')
+fake = Faker("pt_BR")
 fake.add_provider(ProgrammingLanguagesProvider)
 
 
 @dataclass
 class Pessoa:
-    nickname: str
+    apelido: str
     name: str
     nascimento: str
     stack: list[str]
@@ -33,28 +41,28 @@ class Pessoa:
 def generate_random_pessoa() -> Pessoa:
     simple_profile = fake.simple_profile()
     return Pessoa(
-        nickname=simple_profile['username'],
-        name=simple_profile['name'],
-        nascimento=str(simple_profile['birthdate']),
+        apelido=simple_profile["username"],
+        name=simple_profile["name"],
+        nascimento=str(simple_profile["birthdate"]),
         stack=fake.programming_languages(),
     )
 
 
 class PessoaLoadTesting(HttpUser):
-    host = 'http://localhost:8000'
+    host = "http://localhost:8000"
     wait_time = constant(1)
 
     @task
     def create_and_get_pessoa_success(self):
         post_res = self.client.post(
-            '/pessoas',
+            "/pessoas",
             json=asdict(generate_random_pessoa()),
-            name='/create-pessoa-success'
+            name="/create-pessoa-success",
         )
         if not post_res.ok:
             return
-        pessoa_location = post_res.headers.get('location')
-        self.client.get(pessoa_location, name='/get-pessoa-by-id-success')
+        pessoa_location = post_res.headers.get("location")
+        self.client.get(pessoa_location, name="/get-pessoa-by-id-success")
 
     # @task(3)
     # def get_pessoas_by_search_term_success(self):
