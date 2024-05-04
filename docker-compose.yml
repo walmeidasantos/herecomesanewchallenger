@@ -1,12 +1,12 @@
-version: '0.1'
+version: '0.2'
 
 services:
 
   db-postgresql:
     image: vector_pt_br
-    command: postgres 
+    command: postgres
     container_name: vector_postgres
-    user: postgres  
+    user: postgres
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready" ]
       interval: 3s
@@ -18,12 +18,12 @@ services:
       POSTGRES_DB: rinha
       POSTGRES_HOST_AUTH_METHOD: trust
     logging:
-          options:
-            max-size: 10m
-            max-file: "3"
-    network_mode: "host"              
+      options:
+        max-size: 10m
+        max-file: "3"
+    network_mode: "host"
     ports:
-          - '5432:5432'
+      - '5432:5432'
     volumes:
       - /tmp/:/var/´run/postgresql/:rw
       - ./postgresql.conf:/var/lib/postgresql/data/postgresql.conf
@@ -32,71 +32,77 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: '1.3GB'
+          memory: '1.5GB'
     # networks:
     #   - vector-network
 
-  # vector1: &vector
-  #   #image: walmeidasantos/herecomesanewchallenger:latest
-  #   build: .
-  #   hostname: vector1
-  #   command: "uvicorn app.main:app --loop uvloop --uds /tmp/vector1.sock --proxy-headers --no-access-log"
-  #   # command: bash -c "sleep infinity"
-  #   environment:
-  #       - DATABASE_URL = postgresql://postgres:postgres@127.0.0.1:5432/rinha
-  #       - ENV_NAME=vector
-  #       - GUNICORN_BIND=0.0.0.0:8000
-  #       - GUNICORN_WORKERS=2
-  #       - GUNICORN_KEEPALIVE=4
-  #       - GUNICORN_FORWARDED_ALLOW_IPS=*
-  #   depends_on:
-  #       db-postgresql:
-  #         condition: service_healthy
-  #   volumes:
-  #     - socks:/tmp
-  #   deploy:
-  #       resources:
-  #         limits:
-  #           cpus: '0.3'
-  #           memory: '0.6GB'
-  #   # ports:
-  #   # - '8000:8000'
-  #   # networks:
-  #   #     - vector-network
-
-  # vector2:
-  #   <<: *vector
-  #   hostname: vector2
-  #   command: "uvicorn app.main:app --loop uvloop --uds /tmp/vector2.sock --proxy-headers --no-access-log"
-
-
-  # nginx:
-  #   image: nginx:latest
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
-  #     - socks:/tmp
-  #   depends_on:
-  #     vector1:
-  #       condition: service_healthy
-  #     vector2:
-  #       condition: service_healthy
-  #   ulimits:
-  #     nproc: 1000000
-  #     nofile:
-  #       soft: 1000000
-  #       hard: 1000000
-  #   ports:
-  #     - "9999:9999"
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: '0.2'
-  #         memory: '0.1GB'
+  vector1: &vector
+    build: Dockerfile
+    image: walmeidasantos/herecomesanewchallenger:latest
+    hostname: vector1
+    # command: "uvicorn app.main:app --loop uvloop --uds /tmp/vector1.sock --proxy-headers --no-access-log"
+    command: "gunicorn main:app --bind unix:/tmp/vector1.sock "
+    # command: bash -c "sleep infinity"
+    network_mode: "host"
+    environment:
+      - ENV_NAME=vector
+      - GUNICORN_WORKERS=2
+      - GUNICORN_KEEPALIVE=4
+      - DB_URL=postgresql://postgres:postgres@127.0.0.1:5432/rinha
+    # env_file:
+    #   - .env
+    depends_on:
+      db-postgresql:
+        condition: service_healthy
+    volumes:
+      - /tmp:/tmp
+    deploy:
+      resources:
+        limits:
+          cpus: '0.35'
+          memory: '0.6GB'
+    # ports:
+    # - '8000:8000'
     # networks:
-    #   - vector-network
+    #     - vector-network
 
-# networks:
-#   vector-network:
+  vector2:
+    <<: *vector
+    hostname: vector2
+    command: "gunicorn main:app --bind unix:/tmp/vector2.sock "
+    environment:
+      - DB_URL=postgresql://postgres:postgres@127.0.0.1:5432/rinha
+      - ENV_NAME=vector
+      - GUNICORN_WORKERS=2
+      - GUNICORN_KEEPALIVE=4
+    depends_on:
+      db-postgresql:
+        condition: service_healthy
+      vector1:
+        condition: service_healthy
+  nginx:
+    image: nginx:latest
+    network_mode: "host"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /tmp:/tmp
+    depends_on:
+      vector1:
+        condition: service_healthy
+      vector2:
+        condition: service_healthy
+    ulimits:
+      nproc: 1000000
+      nofile:
+        soft: 1000000
+        hard: 1000000
+    ports:
+      - "9999:9999"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: '0.3GB'
 
 volumes:
   pg_data:
