@@ -9,7 +9,13 @@ class DatabaseConnection:
         if not cls._instance:
             cls._instance = super().__new__(cls)
             url = os.getenv("DB_URL")
-            cls._instance = create_engine(url, echo=False, isolation_level="AUTOCOMMIT")
+            cls._instance = create_engine(
+                url,
+                echo=False,
+                isolation_level="AUTOCOMMIT",
+                pool_size=250,
+                max_overflow=-1,
+            )
 
         return cls._instance
 
