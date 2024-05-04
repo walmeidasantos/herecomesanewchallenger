@@ -12,7 +12,7 @@ RUN apt-get update && \
     apt-get upgrade --assume-yes  
 
 # Install the runtime dependencies using pip and additionally cache the dependencies to optimise build times
-RUN python -m pip install pip~=23.0 --upgrade --no-cache-dir 
+RUN python -m pip install pip~=23.0 --upgrade --no-cache-dir
 RUN pip install --requirement requirements.txt 
 
 COPY ./app .

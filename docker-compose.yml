@@ -32,7 +32,7 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: '1.3GB'
+          memory: '1.5GB'
     # networks:
     #   - vector-network
 
@@ -59,7 +59,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.3'
+          cpus: '0.35'
           memory: '0.6GB'
     # ports:
     # - '8000:8000'
@@ -101,8 +101,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.2'
-          memory: '0.1GB'
+          cpus: '0.3'
+          memory: '0.3GB'
 
 volumes:
   pg_data:
