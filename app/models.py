@@ -1,5 +1,5 @@
 import uuid as uuid_pkg
-from typing import Optional
+from typing import Optional, List
 from pydantic import schema, computed_field, model_validator, validator, root_validator
 from datetime import date
 from sqlmodel import Field, SQLModel, Column, Computed, String, default, text
@@ -12,10 +12,10 @@ from sqlalchemy.orm import column_property
 
 
 class PessoaJson(SQLModel, table=False):
-    nome: str = Field(max_length=100)
     apelido: str = Field(max_length=30, unique=True, nullable=False)
+    nome: str = Field(max_length=100)
     nascimento: str = Field(default=date.today().strftime("%Y-%m-%d"))
-    stack: dict = Field(sa_column=Column(sa.JSON), default=dict)
+    stack: Optional[List[str]] = Field(sa_column=Column(sa.JSON))
 
 
 class Pessoa(PessoaJson, table=True):
