@@ -1,15 +1,17 @@
 import os
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
-from ..models import Pessoa
-from sqlmodel import text, delete, SQLModel
+from models import Pessoa
+from sqlmodel import text, delete, SQLModel, create_engine, Session
 import asyncio
 
 # from sqlalchemy_utils import create_database, database_exists
 
 url = os.getenv("DB_URL", "")
 async_url = os.getenv("ASYNC_DB_URL", "")
+
 AsyncEngine = create_async_engine(
+    # AsyncEngine = create_engine(
     url,
     echo=False,
     pool_size=250,
@@ -22,7 +24,8 @@ AsyncEngine = create_async_engine(
 #     expire_on_commit=False,
 #     class_=AsyncSession,
 # )
-Session = AsyncSession(bind=AsyncEngine, autoflush=True)
+# session = Session(bind=AsyncEngine, autoflush=True, expire_on_commit=False)
+# SessionLocal = AsyncSession(bind=AsyncEngine, autoflush=True, expire_on_commit=False)
 
 
 async def get_database():
@@ -31,19 +34,22 @@ async def get_database():
     Yields:
         SessionLocal: An open database session.
     """
-    async with Session() as session:
+    async with AsyncSession(
+        bind=AsyncEngine, autoflush=True, expire_on_commit=False
+    ) as session:
         try:
             yield session
-        except Exception as err:
+        except Exception as e:
             await session.rollback()
-            raise err
+            raise e
         finally:
             await session.close()
 
 
 async def delete_pessoas() -> None:
+    session = get_database()
     statement = delete(Pessoa)
-    await Session.execute(statement)
+    await session.exec(statement)
 
 
 async def init_db() -> None:
@@ -52,7 +58,11 @@ async def init_db() -> None:
     Args:
         session: An open database session.
     """
-    async with AsyncEngine.connect() as session:
+    async with AsyncEngine.begin() as session:
+        await session.run_sync(SQLModel.metadata.create_all)
+        # async with AsyncSession(
+        #     bind=AsyncEngine, autoflush=True, expire_on_commit=False
+        # ) as session:
         # if not database_exists(url):
         #    await session.run_sync(create_database(url))
         try:

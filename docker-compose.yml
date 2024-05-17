@@ -6,7 +6,7 @@ services:
     image: vector_pt_br
     container_name: vector_postgres
     user: postgres
-    command: postgres -c config_file=/etc/postgresql.conf
+    # command: postgres -c config_file=/etc/postgresql/postgresql.conf
     #command: bash -c "sleep infinity"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready" ]
@@ -27,8 +27,8 @@ services:
       - '5432:5432'
     volumes:
       #- socks:/var/run/postgresql/:rw
-      #- ./postgresql.conf:/var/lib/postgresql/data/postgresql.conf
-      - ./postgresql.conf:/etc/postgresql.conf
+      - ./postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+      #- ./postgresql.conf:/etc/postgresql/postgresql.conf
       - ps_data:/var/lib/postgresql/data
     deploy:
       resources:
@@ -51,6 +51,7 @@ services:
       - GUNICORN_WORKERS=2
       - GUNICORN_KEEPALIVE=4
       - TST=1
+      #- DB_URL = postgresql://postgres:postgres@127.0.0.1:5432/rinha
       - DB_URL=postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/rinha
     # env_file:
     #   - .env

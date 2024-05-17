@@ -14,7 +14,7 @@ app = FastAPI(title="Rinha Backend 2023")
 @app.on_event("startup")
 async def on_startup():
     await init_db()
-    await delete_pessoas()
+    # await delete_pessoas()
 
 
 @app.exception_handler(RequestValidationError)
@@ -47,7 +47,6 @@ async def create_person(
 
 @app.get("/pessoas/{id}")
 async def find_by_id(id: str, session: AsyncSession = Depends(get_database)):
-
     try:
         pessoa_existe = (
             (await session.execute(select(Pessoa).where(Pessoa.id == id)))
@@ -57,7 +56,7 @@ async def find_by_id(id: str, session: AsyncSession = Depends(get_database)):
         if pessoa_existe:
             return pessoa_existe
         else:
-            raise HTTPException(status_code=404)
+            raise HTTPException(status_code=400)
     except:
         raise HTTPException(status_code=400)
 
@@ -73,7 +72,7 @@ async def find_by_term(
             await session.execute(text(raw_query), {"term": "%" + term + "%"})
         ).fetchmany(30)
         if not result:
-            raise HTTPException(status_code=404)
+            raise HTTPException(status_code=400)
 
         for row in result:
             pessoa = Pessoa(
@@ -92,7 +91,6 @@ async def find_by_term(
 
 @app.get("/contagem-pessoas")
 async def count_pessoas(session: AsyncSession = Depends(get_database)):
-
     query = select(func.count(Pessoa.id))
     result = await session.execute(query)
     count = result.scalar_one()
