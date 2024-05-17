@@ -1,0 +1,43 @@
+version: '0.2'
+
+services:
+
+  db-postgresql:
+    image: vector_pt_br
+    command: postgres
+    container_name: vector_postgres_dev
+    user: postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: rinha
+      POSTGRES_HOST_AUTH_METHOD: trust
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    network_mode: "host"
+    ports:
+      - '5432:5432'
+    volumes:
+      - /tmp/:/var/´run/postgresql/:rw
+      - ./postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+      - pg_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: '1.5GB'
+    # networks:
+    #   - vector-network
+
+
+volumes:
+  pg_data:
+    name: vector_postgres
+  socks:

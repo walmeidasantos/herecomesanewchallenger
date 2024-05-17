@@ -4,14 +4,15 @@ services:
 
   db-postgresql:
     image: vector_pt_br
-    command: postgres
     container_name: vector_postgres
     user: postgres
+    command: postgres -c config_file=/etc/postgresql.conf
+    #command: bash -c "sleep infinity"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready" ]
       interval: 3s
       timeout: 5s
-      retries: 10
+      retries: 30
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -25,9 +26,10 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - /tmp/:/var/´run/postgresql/:rw
-      - ./postgresql.conf:/var/lib/postgresql/data/postgresql.conf
-      - pg_data:/var/lib/postgresql/data
+      #- socks:/var/run/postgresql/:rw
+      #- ./postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+      - ./postgresql.conf:/etc/postgresql.conf
+      - ps_data:/var/lib/postgresql/data
     deploy:
       resources:
         limits:
@@ -37,25 +39,26 @@ services:
     #   - vector-network
 
   vector1: &vector
-    build: Dockerfile
+    build: .
     image: walmeidasantos/herecomesanewchallenger:latest
     hostname: vector1
-    # command: "uvicorn app.main:app --loop uvloop --uds /tmp/vector1.sock --proxy-headers --no-access-log"
+    #command: "uvicorn main:app --loop uvloop --uds /tmp/vector1.sock --proxy-headers --no-access-log"
     command: "gunicorn main:app --bind unix:/tmp/vector1.sock "
-    # command: bash -c "sleep infinity"
+    #command: bash -c "sleep infinity"
     network_mode: "host"
     environment:
       - ENV_NAME=vector
       - GUNICORN_WORKERS=2
       - GUNICORN_KEEPALIVE=4
-      - DB_URL=postgresql://postgres:postgres@127.0.0.1:5432/rinha
+      - TST=1
+      - DB_URL=postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/rinha
     # env_file:
     #   - .env
     depends_on:
       db-postgresql:
         condition: service_healthy
     volumes:
-      - /tmp:/tmp
+      - socks:/tmp
     deploy:
       resources:
         limits:
@@ -69,28 +72,24 @@ services:
   vector2:
     <<: *vector
     hostname: vector2
+    #command: "uvicorn app:main --loop uvloop --uds /tmp/vector2.sock --proxy-headers --no-access-log"
     command: "gunicorn main:app --bind unix:/tmp/vector2.sock "
-    environment:
-      - DB_URL=postgresql://postgres:postgres@127.0.0.1:5432/rinha
-      - ENV_NAME=vector
-      - GUNICORN_WORKERS=2
-      - GUNICORN_KEEPALIVE=4
     depends_on:
       db-postgresql:
         condition: service_healthy
       vector1:
-        condition: service_healthy
+        condition: service_started
   nginx:
     image: nginx:latest
     network_mode: "host"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - /tmp:/tmp
+      - socks:/tmp
     depends_on:
       vector1:
-        condition: service_healthy
+        condition: service_started
       vector2:
-        condition: service_healthy
+        condition: service_started
     ulimits:
       nproc: 1000000
       nofile:
@@ -103,8 +102,6 @@ services:
         limits:
           cpus: '0.3'
           memory: '0.3GB'
-
 volumes:
-  pg_data:
-    name: vector_postgres
   socks:
+  ps_data:

@@ -2,7 +2,7 @@ FROM pgvector/pgvector:pg16
 
 LABEL version="0.0.1"
 
-LABEL name="vector_pr_BR"
+LABEL name="vector_pr_br"
 
 LABEL description="PostgreSQL Vector pt_BR.UTF8"
 

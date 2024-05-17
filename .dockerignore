@@ -1,2 +1,6 @@
 .env
+.venv
+api_load_testing
+tests
+__pycache__
 requirements-dev.txt
