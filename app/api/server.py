@@ -1,11 +1,11 @@
-from models import Pessoa, PessoaJson
-from fastapi import FastAPI, HTTPException, Query, Response, Depends
-import uvicorn
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlmodel import text
-from database import init_db, get_database, delete_pessoas
+import uvicorn
+from fastapi import FastAPI, HTTPException, Query, Response, Depends
+from app.models import Pessoa, PessoaJson
+from app.database import init_db, get_database, delete_pessoas
 
 app = FastAPI(title="Rinha Backend 2023")
 # app.debug = True
