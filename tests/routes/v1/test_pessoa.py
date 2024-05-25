@@ -2,14 +2,14 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid_extensions import uuid7
 
-from snippets.crud.pessoa import (
+from app2.crud.pessoa import (
     create_pessoa,
     delete_pessoa,
     get_pessoa,
     get_pessoa_by_email,
     update_pessoa,
 )
-from snippets.models.pessoa import pessoaCreate, pessoaUpdate
+from app2.models.pessoa import pessoaCreate, pessoaUpdate
 
 
 async def test_create_pessoa(session: AsyncSession):
